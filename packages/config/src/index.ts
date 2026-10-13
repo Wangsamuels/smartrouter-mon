@@ -58,10 +58,17 @@ const EnvSchema = z.object({
   /** Aurora Intents Connect API (cross-chain deposits straight into the vault). */
   AURORA_API_URL: optionalStr,
   AURORA_API_KEY: optionalStr,
-  /** Qwen router agent (Alibaba Cloud Model Studio, OpenAI-compatible). */
+  /**
+   * Router agent: any OpenAI-compatible chat API with tool calling.
+   * Qwen (Alibaba Cloud Model Studio) if QWEN_API_KEY is set; otherwise Groq's free tier with
+   * GROQ_FREE_API_KEY (already used for the free model). AGENT_* override either.
+   */
   QWEN_BASE_URL: z.string().default('https://dashscope-intl.aliyuncs.com/compatible-mode/v1'),
   QWEN_API_KEY: optionalStr,
   QWEN_MODEL: z.string().default('qwen3-max'),
+  AGENT_BASE_URL: optionalStr,
+  AGENT_API_KEY: optionalStr,
+  AGENT_MODEL: optionalStr,
   /** If the agent hasn't decided in this long, /recommend falls back to the built-in scorer. */
   AGENT_TIMEOUT_MS: z.coerce.number().int().positive().default(6000),
 
@@ -228,7 +235,18 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     },
     relay: { apiKey: e.RELAY_API_KEY, url: e.RELAY_API_URL.replace(/\/+$/, '') },
     aurora: { url: e.AURORA_API_URL?.replace(/\/+$/, ''), apiKey: e.AURORA_API_KEY, configured: Boolean(e.AURORA_API_URL && e.AURORA_API_KEY) },
-    agent: { baseUrl: e.QWEN_BASE_URL.replace(/\/+$/, ''), apiKey: e.QWEN_API_KEY, model: e.QWEN_MODEL, timeoutMs: e.AGENT_TIMEOUT_MS },
+    agent: (() => {
+      const groq = { baseUrl: 'https://api.groq.com/openai/v1', apiKey: e.GROQ_FREE_API_KEY, model: 'llama-3.3-70b-versatile', provider: 'groq' }
+      const qwen = { baseUrl: e.QWEN_BASE_URL, apiKey: e.QWEN_API_KEY, model: e.QWEN_MODEL, provider: 'qwen' }
+      const base = e.QWEN_API_KEY ? qwen : groq
+      return {
+        provider: e.AGENT_BASE_URL ? 'custom' : base.provider,
+        baseUrl: (e.AGENT_BASE_URL ?? base.baseUrl).replace(/\/+$/, ''),
+        apiKey: e.AGENT_API_KEY ?? base.apiKey,
+        model: e.AGENT_MODEL ?? base.model,
+        timeoutMs: e.AGENT_TIMEOUT_MS,
+      }
+    })(),
     envio: { url: e.ENVIO_GRAPHQL_URL },
     wallet: {
       sponsorTxPerDay: e.SPONSOR_TX_PER_DAY,

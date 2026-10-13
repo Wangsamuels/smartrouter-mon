@@ -174,7 +174,7 @@ export async function recommendOptions(
     stats: async (ids) => modelStats(ctx, ids, args.input.taskType),
   })
   const reasons = new Map(decision.picks.map((p) => [p.modelId, p.reason]))
-  if (decision.source === 'qwen') top = decision.picks.map((p) => pool.find((s) => s.id === p.modelId)!).filter(Boolean)
+  if (decision.source === 'agent') top = decision.picks.map((p) => pool.find((s) => s.id === p.modelId)!).filter(Boolean)
   const route = { log: decision.log, routeHash: decision.routeHash }
 
   const options: Option[] = await Promise.all(

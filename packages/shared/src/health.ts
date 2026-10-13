@@ -21,7 +21,7 @@ export const HealthResponse = z.object({
     providers: HealthCheck.extend({ healthy: z.number(), total: z.number() }),
     payments: HealthCheck.extend({ operator: z.string().optional(), vault: z.string().optional(), ledger: z.string().optional(), mediaStorage: z.boolean().optional() }).optional(),
     tempo: HealthCheck.extend({ hotWallet: z.string().optional() }).optional(),
-    sponsors: HealthCheck.extend({ qwenAgent: z.boolean(), aurora: z.boolean(), envio: z.boolean(), alchemyRpc: z.boolean() }).optional(),
+    sponsors: HealthCheck.extend({ agent: z.string(), aurora: z.boolean(), envio: z.boolean(), alchemyRpc: z.boolean() }).optional(),
   }),
   time: z.string(),
 })

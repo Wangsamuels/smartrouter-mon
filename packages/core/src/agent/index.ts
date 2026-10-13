@@ -1,5 +1,5 @@
 /**
- * The router agent (Qwen on Alibaba Cloud Model Studio, OpenAI-compatible API).
+ * The router agent: any OpenAI-compatible model with tool calling (Groq's free tier by default, Qwen if configured).
  *
  * For every recommendation it runs a short tool loop instead of a single classification:
  *   get_candidates   — the models that can do this task, with price, quality, speed and web access
@@ -39,9 +39,9 @@ export type AgentContext = {
 }
 
 export type AgentPick = { modelId: string; reason: string }
-export type AgentDecision = { source: 'qwen' | 'scorer'; picks: AgentPick[]; log: Record<string, unknown>; routeHash: `0x${string}`; ms: number; error?: string }
+export type AgentDecision = { source: 'agent' | 'scorer'; picks: AgentPick[]; log: Record<string, unknown>; routeHash: `0x${string}`; ms: number; error?: string }
 
-export type AgentConfig = { baseUrl: string; apiKey?: string; model: string; timeoutMs: number }
+export type AgentConfig = { baseUrl: string; apiKey?: string; model: string; timeoutMs: number; provider?: string }
 
 type Msg = { role: 'system' | 'user' | 'assistant' | 'tool'; content: string | null; tool_calls?: ToolCall[]; tool_call_id?: string }
 type ToolCall = { id: string; type: 'function'; function: { name: string; arguments: string } }
@@ -120,12 +120,12 @@ export async function routeWithAgent(cfg: AgentConfig, ctx: AgentContext): Promi
         body: JSON.stringify({ model: cfg.model, messages, tools: TOOLS, tool_choice: 'auto', temperature: 0.2, max_tokens: 600 }),
         signal,
       })
-      if (!res.ok) throw new Error(`Qwen ${res.status}: ${(await res.text()).slice(0, 200)}`)
+      if (!res.ok) throw new Error(`agent ${res.status}: ${(await res.text()).slice(0, 200)}`)
       const json = (await res.json()) as { choices?: { message?: Msg }[] }
       const msg = json.choices?.[0]?.message
-      if (!msg) throw new Error('Qwen returned no message')
+      if (!msg) throw new Error('agent returned no message')
       const calls = msg.tool_calls ?? []
-      if (!calls.length) throw new Error('Qwen answered without calling choose_models')
+      if (!calls.length) throw new Error('agent answered without calling choose_models')
       messages.push({ role: 'assistant', content: msg.content ?? null, tool_calls: calls })
       for (const call of calls) {
         let args: Record<string, unknown> = {}
@@ -143,8 +143,8 @@ export async function routeWithAgent(cfg: AgentConfig, ctx: AgentContext): Promi
             .map((p) => ({ modelId: p.modelId, reason: String(p.reason ?? valid.get(p.modelId)!.scorerReason).slice(0, 120) }))
           if (!picks.length) throw new Error('choose_models named no valid candidate')
           steps.push({ tool: 'choose_models', args: { picks } })
-          const log = { v: 1, source: 'qwen', model: cfg.model, taskType: ctx.taskType, complexity: ctx.complexity, slider: ctx.slider, steps, picks }
-          return { source: 'qwen', picks, log, routeHash: hashLog(log), ms: Date.now() - started }
+          const log = { v: 1, source: 'agent', provider: cfg.provider ?? 'custom', model: cfg.model, taskType: ctx.taskType, complexity: ctx.complexity, slider: ctx.slider, steps, picks }
+          return { source: 'agent', picks, log, routeHash: hashLog(log), ms: Date.now() - started }
         }
         let result: unknown
         if (call.function.name === 'get_candidates')

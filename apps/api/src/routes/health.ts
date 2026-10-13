@@ -62,7 +62,7 @@ export function healthRoutes(ctx: AppContext) {
           ? { status: 'ok' as CheckStatus, operator: ctx.sessions.operator.address, vault: ctx.sessions.vault, ledger: ctx.cfg.contracts.ledger, mediaStorage: ctx.media.enabled }
           : { status: 'not_configured' as CheckStatus, operator: operatorAddress, detail: 'set VAULT_ADDRESS (deploy contracts/ first)' },
         tempo: { status: (ctx.providers.canPay ? 'ok' : 'not_configured') as CheckStatus, hotWallet: ctx.providers.hotWalletAddress },
-        sponsors: { status: 'ok' as CheckStatus, qwenAgent: Boolean(cfg.agent.apiKey), aurora: cfg.aurora.configured, envio: Boolean(cfg.envio.url), alchemyRpc: /alchemy/i.test(cfg.network.rpcUrl) },
+        sponsors: { status: 'ok' as CheckStatus, agent: cfg.agent.apiKey ? `${cfg.agent.provider}:${cfg.agent.model}` : 'scorer only', aurora: cfg.aurora.configured, envio: Boolean(cfg.envio.url), alchemyRpc: /alchemy/i.test(cfg.network.rpcUrl) },
       },
       time: new Date().toISOString(),
     }

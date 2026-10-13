@@ -1,6 +1,6 @@
 # SmartRouter on Monad
 
-Describe a task; SmartRouter's router agent (Qwen) picks the best AI model for your budget, runs it,
+Describe a task; SmartRouter's router agent picks the best AI model for your budget, runs it,
 and charges you per answer from an AI balance you hold in a smart contract on Monad. You are never
 charged for a failed answer, your daily and weekly caps are enforced on-chain, and every answer
 leaves a public receipt and rating on Monad.
@@ -33,7 +33,7 @@ SmartRouterLedger (Monad): receipts (model, price, delivered/failed, routeHash),
 - **Ledger** (`contracts/contracts/SmartRouterLedger.sol`): receipts recorded by the operator;
   ratings and votes carry the user's (or their spending key's) EIP-712 signature, so they can't be
   forged.
-- **Router agent** (`packages/core/src/agent`): Qwen runs a tool loop (`get_candidates`,
+- **Router agent** (`packages/core/src/agent`): an LLM with tool calling (Groq free tier by default; Qwen or any OpenAI-compatible API via `AGENT_*` / `QWEN_*`) runs a tool loop (`get_candidates`,
   `check_budget`, `get_model_stats`, `choose_models`). The keccak256 of its decision log is the
   `routeHash` in each on-chain receipt; `GET /requests/:id/route` returns the log so anyone can
   check the hash.
@@ -46,7 +46,6 @@ SmartRouterLedger (Monad): receipts (model, price, delivered/failed, routeHash),
 | --- | --- | --- |
 | Privy | sign-in, wallet | Embedded wallet on Monad signs Setup, ERC-3009 top-ups and sends; card funding lands USDC on Monad |
 | Aurora Intents | `packages/core/src/aurora`, `POST /aurora/*` | Cross-chain deposits whose destination steps are `approve` + `vault.depositFor(user)`; API key stays server-side |
-| Qwen (Alibaba Cloud) | `packages/core/src/agent` | Router agent picks models with tools; its decision hash goes on-chain |
 | Envio | `indexer/` | HyperIndex over vault + ledger events → leaderboard, balances, activity |
 | Alchemy | `MONAD_RPC_URL` | Primary Monad RPC for API, worker and frontend |
 
@@ -56,7 +55,7 @@ SmartRouterLedger (Monad): receipts (model, price, delivered/failed, routeHash),
 apps/api          Hono API: auth, catalog, chats, quotes, paid /run (vault vouchers), wallet, ledger
 apps/worker       pg-boss jobs: settle-vault, anchor-receipts, tempo-refill, wallet tracker, sweeps…
 packages/config   env + Monad/Tempo constants
-packages/core     providers, vault payments + settlement, agent, Aurora, treasury
+packages/core     providers, vault payments + settlement, router agent, Aurora, treasury
 packages/db       Drizzle schema + migrations (0009 = Monad vault)
 packages/shared   EIP-712 typed data and API types shared with the frontend
 contracts/        Hardhat: SmartRouterVault, SmartRouterLedger, tests, deploy scripts
