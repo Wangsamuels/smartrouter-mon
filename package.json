@@ -1,0 +1,39 @@
+{
+  "name": "smartrouter-monad",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": "22.x",
+    "pnpm": "9.x"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck && tsc -p scripts",
+    "dev:api": "pnpm --filter @smartrouter/api dev",
+    "dev:worker": "pnpm --filter @smartrouter/worker dev",
+    "db:generate": "pnpm --filter @smartrouter/db generate",
+    "db:migrate": "pnpm --filter @smartrouter/db migrate",
+    "catalog:build": "tsx --env-file-if-exists=.env scripts/build-catalog.ts",
+    "smoke:providers": "tsx --env-file-if-exists=.env scripts/smoke-providers.ts",
+    "test": "pnpm -r --if-present run test",
+    "e2e:api": "tsx scripts/e2e-api.ts",
+    "uploads:test": "tsx scripts/uploads-test.ts",
+    "monad:flow": "tsx scripts/monad-flow.ts",
+    "contracts:test": "cd contracts && npm ci && npx hardhat test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@smartrouter/config": "workspace:*",
+    "@smartrouter/core": "workspace:*",
+    "@smartrouter/db": "workspace:*",
+    "viem": "^2.57.1",
+    "mppx": "^0.13.1",
+    "@smartrouter/shared": "workspace:*"
+  }
+}

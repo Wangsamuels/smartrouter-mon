@@ -1,0 +1,17 @@
+{
+  "name": "@smartrouter/indexer",
+  "private": true,
+  "description": "Envio HyperIndex for SmartRouter on Monad (vault + ledger events)",
+  "scripts": {
+    "codegen": "envio codegen",
+    "dev": "envio dev",
+    "start": "envio start"
+  },
+  "devDependencies": {
+    "envio": "^2.21.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "generated": "file:generated"
+  }
+}

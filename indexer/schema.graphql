@@ -1,0 +1,65 @@
+# One row per user: their AI balance as the vault reports it.
+type Account {
+  id: ID! # user address (lowercase)
+  balance: BigInt!
+  deposited: BigInt!
+  settled: BigInt!
+  returned: BigInt!
+  signer: String
+  dailyCap: BigInt!
+  weeklyCap: BigInt!
+  answers: Int!
+  failedAnswers: Int!
+  updatedAt: Int!
+}
+
+# Every money movement in or out of the vault (activity feed).
+type VaultMove {
+  id: ID! # txHash-logIndex
+  user: String! @index
+  kind: String! # deposit | settle | release | withdraw
+  amount: BigInt!
+  from: String
+  day: BigInt
+  txHash: String!
+  timestamp: Int! @index
+}
+
+# One per paid answer (SmartRouterLedger.ReceiptRecorded).
+type Receipt {
+  id: ID! # requestId (bytes16 hex)
+  user: String! @index
+  modelId: String! @index
+  modelHash: String!
+  taskType: Int!
+  status: Int! # 1 delivered, 2 failed (not charged)
+  priceMicro: BigInt!
+  routeHash: String!
+  rating: Int # +1 / -1 once rated
+  txHash: String!
+  timestamp: Int!
+}
+
+# Leaderboard row: one per model per task type.
+type ModelStats {
+  id: ID! # modelHash-taskType
+  modelId: String! @index
+  modelHash: String!
+  taskType: Int! @index
+  delivered: Int!
+  failed: Int!
+  up: Int!
+  down: Int!
+  compareWins: Int!
+  compareLosses: Int!
+  revenueMicro: BigInt!
+}
+
+type CompareVote {
+  id: ID! # compareGroup
+  user: String!
+  taskType: Int!
+  winnerModelHash: String!
+  loserModelHash: String!
+  timestamp: Int!
+}

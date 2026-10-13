@@ -1,0 +1,32 @@
+{
+  "name": "@smartrouter/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/server.ts",
+    "build": "tsup",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@hono/zod-validator": "^0.4.3",
+    "@smartrouter/config": "workspace:*",
+    "@smartrouter/core": "workspace:*",
+    "@smartrouter/db": "workspace:*",
+    "@smartrouter/shared": "workspace:*",
+    "hono": "^4.6.14",
+    "ioredis": "^5.4.2",
+    "jose": "^5.9.6",
+    "mammoth": "^1",
+    "mppx": "^0.13.1",
+    "unpdf": "^1",
+    "viem": "^2.57.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

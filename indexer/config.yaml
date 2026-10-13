@@ -1,0 +1,31 @@
+# Envio HyperIndex: SmartRouter on Monad.
+# Fill in the addresses and start block from contracts/deployments/<network>.json, then:
+#   pnpm dlx envio codegen && pnpm dlx envio dev        (local)
+#   deploy on Envio's hosted service and set ENVIO_GRAPHQL_URL on Heroku
+name: smartrouter-monad
+description: Vault deposits/settlements and ledger receipts, ratings and Compare votes for SmartRouter on Monad
+field_selection:
+  transaction_fields:
+    - hash
+networks:
+  - id: 10143 # Monad testnet (use 143 for mainnet)
+    start_block: 0 # VAULT_START_BLOCK
+    contracts:
+      - name: SmartRouterVault
+        address:
+          - "0x0000000000000000000000000000000000000000" # VAULT_ADDRESS
+        handler: src/EventHandlers.ts
+        events:
+          - event: Deposited(address indexed user, address indexed from, uint256 amount, uint256 balance)
+          - event: SetupChanged(address indexed user, address indexed signer, uint64 signerExpiry, uint128 dailyCap, uint128 weeklyCap)
+          - event: Settled(address indexed user, uint256 indexed day, uint256 amount, uint256 settledTotal, uint256 balance)
+          - event: Released(address indexed user, uint256 amount)
+          - event: Withdrawn(address indexed user, uint256 amount)
+      - name: SmartRouterLedger
+        address:
+          - "0x0000000000000000000000000000000000000000" # LEDGER_ADDRESS
+        handler: src/EventHandlers.ts
+        events:
+          - event: ReceiptRecorded(bytes16 indexed requestId, address indexed user, bytes32 indexed modelHash, string modelId, uint8 taskType, uint8 status, uint64 priceMicro, bytes32 routeHash)
+          - event: Rated(bytes16 indexed requestId, address indexed user, bytes32 indexed modelHash, uint8 taskType, int8 score, int8 previous)
+          - event: Compared(bytes16 indexed compareGroup, address indexed user, uint8 taskType, bytes32 winnerModelHash, bytes32 loserModelHash)

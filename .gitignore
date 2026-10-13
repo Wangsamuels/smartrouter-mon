@@ -1,0 +1,33 @@
+.heroku-key
+.env
+.env.*
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+.src-snapshot*.tgz
+_tmp_*
+.cloudflare
+scripts/out/
+!.env.example
+.secrets
+.hot-wallet
+.smoke-bundle.tgz
+.smoke-run*.mjs
+.smoke-results.jsonl
+.operator-*
+.test-user-wallet
+dump.rdb
+.rpc-*
+.privy
+
+# local source bundles (may contain secrets)
+_tmp_src_*.tgz
+*.tgz
+
+# contracts / indexer build output
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/deployments/localhost.json
+indexer/generated/

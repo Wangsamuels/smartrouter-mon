@@ -1,0 +1,20 @@
+{
+  "name": "@smartrouter/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/scheduler.ts",
+    "build": "tsup",
+    "start": "node dist/scheduler.js",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@smartrouter/config": "workspace:*",
+    "@smartrouter/core": "workspace:*",
+    "@smartrouter/db": "workspace:*",
+    "node-cron": "^3.0.3",
+    "pg-boss": "^10.1.5"
+  },
+  "devDependencies": { "@types/node-cron": "^3.0.11" }
+}
