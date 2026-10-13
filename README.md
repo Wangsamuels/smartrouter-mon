@@ -33,7 +33,7 @@ SmartRouterLedger (Monad): receipts (model, price, delivered/failed, routeHash),
 - **Ledger** (`contracts/contracts/SmartRouterLedger.sol`): receipts recorded by the operator;
   ratings and votes carry the user's (or their spending key's) EIP-712 signature, so they can't be
   forged.
-- **Router agent** (`packages/core/src/agent`): an LLM with tool calling (Groq free tier by default; Qwen or any OpenAI-compatible API via `AGENT_*` / `QWEN_*`) runs a tool loop (`get_candidates`,
+- **Router agent** (`packages/core/src/agent`): an LLM with tool calling (Qwen 3.8 on Groq's free tier by default; Qwen or any OpenAI-compatible API via `AGENT_*` / `QWEN_*`) runs a tool loop (`get_candidates`,
   `check_budget`, `get_model_stats`, `choose_models`). The keccak256 of its decision log is the
   `routeHash` in each on-chain receipt; `GET /requests/:id/route` returns the log so anyone can
   check the hash.

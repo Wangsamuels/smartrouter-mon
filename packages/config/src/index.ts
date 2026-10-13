@@ -236,7 +236,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     relay: { apiKey: e.RELAY_API_KEY, url: e.RELAY_API_URL.replace(/\/+$/, '') },
     aurora: { url: e.AURORA_API_URL?.replace(/\/+$/, ''), apiKey: e.AURORA_API_KEY, configured: Boolean(e.AURORA_API_URL && e.AURORA_API_KEY) },
     agent: (() => {
-      const groq = { baseUrl: 'https://api.groq.com/openai/v1', apiKey: e.GROQ_FREE_API_KEY, model: 'llama-3.3-70b-versatile', provider: 'groq' }
+      const groq = { baseUrl: 'https://api.groq.com/openai/v1', apiKey: e.GROQ_FREE_API_KEY, model: 'qwen/qwen3.8-27b', provider: 'groq' }
       const qwen = { baseUrl: e.QWEN_BASE_URL, apiKey: e.QWEN_API_KEY, model: e.QWEN_MODEL, provider: 'qwen' }
       const base = e.QWEN_API_KEY ? qwen : groq
       return {

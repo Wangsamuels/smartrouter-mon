@@ -20,7 +20,8 @@
     "e2e:api": "tsx scripts/e2e-api.ts",
     "uploads:test": "tsx scripts/uploads-test.ts",
     "monad:flow": "tsx scripts/monad-flow.ts",
-    "contracts:test": "cd contracts && npm ci && npx hardhat test"
+    "contracts:test": "cd contracts && npm ci && npx hardhat test",
+    "deploy:contracts": "node scripts/deploy-contracts.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
