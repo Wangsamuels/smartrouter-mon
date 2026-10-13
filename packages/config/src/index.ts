@@ -104,6 +104,8 @@ const EnvSchema = z.object({
   RESEND_API_KEY: optionalStr,
   EMAIL_FROM: z.string().default('SmartRouter <onboarding@resend.dev>'),
   /** Minutes a send code stays valid. */
+  /** Require the 6-digit email code before money leaves a wallet (off by default; turn on with SEND_CODE_REQUIRED=true). */
+  SEND_CODE_REQUIRED: z.enum(['true', 'false']).default('false'),
   SEND_CODE_TTL_MIN: z.coerce.number().int().positive().default(10),
   /** Testnet only: return the code in the API response instead of requiring email (automated tests). Ignored on mainnet. */
   SEND_CODE_ECHO: z.enum(['true', 'false']).default('false'),
@@ -251,6 +253,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     wallet: {
       sponsorTxPerDay: e.SPONSOR_TX_PER_DAY,
       sendMaxMicro: BigInt(Math.round(e.SEND_MAX_USD * 1e6)),
+      sendCodeRequired: e.SEND_CODE_REQUIRED === 'true',
       sendCodeTtlMin: e.SEND_CODE_TTL_MIN,
       sendCodeEcho: e.SEND_CODE_ECHO === 'true' && e.MONAD_NETWORK !== 'mainnet',
     },

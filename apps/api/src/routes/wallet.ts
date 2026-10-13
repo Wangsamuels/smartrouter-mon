@@ -50,9 +50,10 @@ const SendBody = z.object({
   chain: z.literal('monad').default('monad'),
   token: z.string().default('USDC'),
 })
+/** With SEND_CODE_REQUIRED=true, a send also needs the 6-digit email code from POST /wallet/send/code. */
 const ConfirmedSendBody = SendBody.extend({
-  verificationId: z.string().uuid(),
-  code: z.string().regex(/^\s*\d{6}\s*$/, 'Enter the 6-digit code'),
+  verificationId: z.string().uuid().optional(),
+  code: z.string().regex(/^\s*\d{6}\s*$/, 'Enter the 6-digit code').optional(),
 })
 
 /** Typed data the user signs (with the Privy wallet) to register their spending key and caps. */
@@ -145,7 +146,7 @@ export function walletRoutes(ctx: AppContext) {
         crossChain: Boolean(aurora?.available),
         card: { via: 'privy', chain: 'monad', token: 'USDC' },
         cashOut: false,
-        sendCode: { required: true, sentTo: user.email ? maskEmail(user.email) : null, ttlMinutes: ctx.cfg.wallet.sendCodeTtlMin },
+        sendCode: { required: ctx.cfg.wallet.sendCodeRequired, sentTo: user.email ? maskEmail(user.email) : null, ttlMinutes: ctx.cfg.wallet.sendCodeTtlMin },
       },
     })
   })
@@ -291,7 +292,7 @@ export function walletRoutes(ctx: AppContext) {
     return c.json(await issueSendCode(ctx, user, target, { amountUsd: usd(target.amountMicro), chainName: 'Monad', token: 'USDC' }))
   })
 
-  /** Step 2: the code checks out → the transfer authorization to sign. */
+  /** The transfer authorization to sign. Needs the email code only when SEND_CODE_REQUIRED=true. */
   app.post('/wallet/send', zValidator('json', ConfirmedSendBody), async (c) => {
     const user = c.get('user')
     const { verificationId, code, ...body } = c.req.valid('json')
@@ -299,14 +300,18 @@ export function walletRoutes(ctx: AppContext) {
     const balance = await tokenBalance(ctx, user.tempoAddress as `0x${string}`)
     if (balance < target.amountMicro) throw new AppError('VALIDATION_FAILED', `Not enough in your wallet ($${usd(balance).toFixed(2)})`)
     await assertSponsor(user.id)
-    const codeId = await consumeSendCode(ctx, user.id, verificationId, code, target)
+    let codeId: string | undefined
+    if (ctx.cfg.wallet.sendCodeRequired) {
+      if (!verificationId || !code) throw new AppError('VALIDATION_FAILED', 'Enter the 6-digit code we emailed you')
+      codeId = await consumeSendCode(ctx, user.id, verificationId, code, target)
+    }
     const now = Math.floor(Date.now() / 1000)
     const message = { from: user.tempoAddress, to: body.to.toLowerCase(), value: target.amountMicro.toString(), validAfter: '0', validBefore: String(now + 1800), nonce: `0x${randomBytes(32).toString('hex')}` }
     const [move] = await ctx.db
       .insert(schema.walletMoves)
-      .values({ userId: user.id, kind: 'send', status: 'pending', amountMicro: target.amountMicro, chain: 'monad', token: 'USDC', counterparty: body.to.toLowerCase(), detail: { verifiedBy: 'email_code', submitted: false, authorization: message } })
+      .values({ userId: user.id, kind: 'send', status: 'pending', amountMicro: target.amountMicro, chain: 'monad', token: 'USDC', counterparty: body.to.toLowerCase(), detail: { verifiedBy: codeId ? 'email_code' : 'app', submitted: false, authorization: message } })
       .returning()
-    await linkCodeToMove(ctx, codeId, move!.id)
+    if (codeId) await linkCodeToMove(ctx, codeId, move!.id)
     return c.json({
       sendId: move!.id,
       chainId,
