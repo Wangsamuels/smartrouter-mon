@@ -50,7 +50,12 @@ export function createApp(ctx: AppContext) {
   const minute = 60_000
   const n = (max: number) => Math.ceil(max * ctx.cfg.rateLimitScale)
   app.use('*', rateLimit(ctx.redis, { name: 'ip', max: n(600), windowMs: minute, key: ip }))
-  app.use('/auth/*', rateLimit(ctx.redis, { name: 'auth', max: n(30), windowMs: minute, key: ip }))
+  // POST /auth/privy is polled once a second for up to 45s while Privy links the embedded
+  // wallet into the identity token. The general auth cap is 30/min, so that poll was cut
+  // off on the 31st try and the site showed "Sign-in failed". Two full polls fit in 90.
+  const notPrivySignIn = (c: Parameters<typeof clientIp>[0]) => (c.req.path === '/auth/privy' ? undefined : ip(c))
+  app.use('/auth/*', rateLimit(ctx.redis, { name: 'auth', max: n(30), windowMs: minute, key: notPrivySignIn }))
+  app.use('/auth/privy', rateLimit(ctx.redis, { name: 'auth-privy', max: n(90), windowMs: minute, key: ip }))
   app.use('/run', rateLimit(ctx.redis, { name: 'run', max: n(120), windowMs: minute, key: ip }))
   app.use('/chats', rateLimit(ctx.redis, { name: 'chat-create', max: n(30), windowMs: minute, key: (c) => (c.req.method === 'POST' ? ip(c) : undefined) }))
   app.use('/chats/:id/quote', rateLimit(ctx.redis, { name: 'quote', max: n(90), windowMs: minute, key: ip }))
